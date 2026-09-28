@@ -25,11 +25,13 @@ st.set_page_config(
 
 st.markdown("""
 <style>
+    /* Global Page Styling */
     .stApp {
         background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
         color: #f8fafc;
     }
     
+    /* Header Styling */
     .main-title {
         font-size: 2.5rem;
         font-weight: 800;
@@ -45,6 +47,7 @@ st.markdown("""
         margin-bottom: 25px;
     }
 
+    /* Metric Cards */
     div[data-testid="stMetric"] {
         background: rgba(30, 41, 59, 0.7);
         border: 1px solid rgba(255, 255, 255, 0.1);
@@ -60,6 +63,7 @@ st.markdown("""
         color: #38bdf8;
     }
 
+    /* Glass Cards */
     .glass-card {
         background: rgba(30, 41, 59, 0.5);
         border: 1px solid rgba(255, 255, 255, 0.08);
@@ -69,21 +73,31 @@ st.markdown("""
         backdrop-filter: blur(12px);
     }
 
-    .stButton > button {
-        width: 100%;
-        background: linear-gradient(90deg, #2563eb 0%, #3d82f6 100%);
-        color: white;
-        border: none;
-        border-radius: 8px;
-        padding: 12px 24px;
-        font-weight: 700;
-        font-size: 1rem;
-        transition: all 0.3s ease;
+    /* FIX FOR RADIO BUTTON & FORM LABELS */
+    .stRadio label, .stSelectbox label, .stNumberInput label, div[data-testid="stWidgetLabel"] p {
+        color: #f8fafc !important;
+        font-weight: 600 !important;
+        font-size: 1rem !important;
+    }
+
+    /* FIX FOR SUBMIT BUTTON CONTRAST */
+    .stButton > button, div[data-testid="stFormSubmitButton"] > button {
+        width: 100% !important;
+        background: linear-gradient(90deg, #2563eb 0%, #3b82f6 100%) !important;
+        color: #ffffff !important;
+        border: none !important;
+        border-radius: 8px !important;
+        padding: 12px 24px !important;
+        font-weight: 700 !important;
+        font-size: 1.1rem !important;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3) !important;
     }
     
-    .stButton > button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 16px -4px rgba(59, 130, 246, 0.5);
+    .stButton > button:hover, div[data-testid="stFormSubmitButton"] > button:hover {
+        background: linear-gradient(90deg, #1d4ed8 0%, #2563eb 100%) !important;
+        color: #ffffff !important;
+        transform: translateY(-1px) !important;
+        box-shadow: 0 6px 16px rgba(37, 99, 235, 0.5) !important;
     }
 </style>
 """, unsafe_allow_html=True)

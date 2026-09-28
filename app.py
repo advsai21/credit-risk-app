@@ -23,6 +23,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# FIXED: unsafe_allow_html=True
 st.markdown("""
 <style>
     /* Global Page Styling */
@@ -115,7 +116,7 @@ st.markdown("""
         box-shadow: 0 8px 16px -4px rgba(59, 130, 246, 0.5);
     }
 </style>
-""", unsafe_allow_dict_only=True)
+""", unsafe_allow_html=True)
 
 # ---------------------------------------------------------
 # DATA PIPELINE
@@ -316,7 +317,6 @@ elif selected_tab == "🤖 ML Models & Evaluation":
 elif selected_tab == "⚡ Live Applicant Risk Scoring":
     st.markdown('### ⚡ Interactive Risk Scoring Form')
     
-    # Train instances
     lr_model, rf_model, _, _, _ = train_models(df)
     
     with st.form("risk_form"):
@@ -339,7 +339,7 @@ elif selected_tab == "⚡ Live Applicant Risk Scoring":
             st.markdown("##### 🏦 Account & Purpose")
             savings = st.selectbox("Saving Accounts", df["Saving accounts"].dropna().unique())
             checking = st.selectbox("Checking Account", df["Checking account"].dropna().unique())
-            purpose = st.selectbox("Loan Purpose", df["Purpose"].unique())
+            purpose = st.selectbox("Purpose", df["Purpose"].unique())
             
         st.markdown("---")
         model_type = st.radio("Select Prediction Engine:", ["Random Forest Classifier", "Logistic Regression"], horizontal=True)

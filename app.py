@@ -14,7 +14,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
 
 # ---------------------------------------------------------
-# PAGE CONFIG & CUSTOM CSS (PREMIUM THEMING)
+# PAGE CONFIG & CUSTOM CSS
 # ---------------------------------------------------------
 st.set_page_config(
     page_title="Credit Risk AI Intelligence Hub",
@@ -23,16 +23,13 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# FIXED: unsafe_allow_html=True
 st.markdown("""
 <style>
-    /* Global Page Styling */
     .stApp {
         background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
         color: #f8fafc;
     }
     
-    /* Header Styling */
     .main-title {
         font-size: 2.5rem;
         font-weight: 800;
@@ -48,7 +45,6 @@ st.markdown("""
         margin-bottom: 25px;
     }
 
-    /* Metric Cards */
     div[data-testid="stMetric"] {
         background: rgba(30, 41, 59, 0.7);
         border: 1px solid rgba(255, 255, 255, 0.1);
@@ -64,7 +60,6 @@ st.markdown("""
         color: #38bdf8;
     }
 
-    /* Custom Cards */
     .glass-card {
         background: rgba(30, 41, 59, 0.5);
         border: 1px solid rgba(255, 255, 255, 0.08);
@@ -74,31 +69,6 @@ st.markdown("""
         backdrop-filter: blur(12px);
     }
 
-    /* Tab Styling */
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 10px;
-        background-color: rgba(15, 23, 42, 0.6);
-        padding: 8px;
-        border-radius: 12px;
-    }
-
-    .stTabs [data-baseweb="tab"] {
-        border-radius: 8px;
-        color: #94a3b8;
-        font-weight: 600;
-        padding: 10px 20px;
-    }
-
-    .stTabs [aria-selected="true"] {
-        background-color: #3b82f6 !important;
-        color: #ffffff !important;
-    }
-
-    /* Input Controls */
-    .stSelectbox, .stNumberInput {
-        border-radius: 8px;
-    }
-    
     .stButton > button {
         width: 100%;
         background: linear-gradient(90deg, #2563eb 0%, #3d82f6 100%);
@@ -119,7 +89,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ---------------------------------------------------------
-# DATA PIPELINE
+# DATA PIPELINE & GLOBAL FUNCTIONS
 # ---------------------------------------------------------
 @st.cache_data
 def load_data():
@@ -133,7 +103,38 @@ def load_data():
 
 df = load_data()
 
-# PLOTLY GLASS THEME HELPER
+# GLOBAL MODEL TRAINING FUNCTION
+@st.cache_resource
+def train_models(data):
+    X = data.drop(columns=["Risk"])
+    y = data["Risk"].map({"good": 1, "bad": 0})
+    
+    cat_cols = ["Sex", "Housing", "Saving accounts", "Checking account", "Purpose"]
+    num_cols = ["Age", "Job", "Credit amount", "Duration"]
+    
+    preprocessor = ColumnTransformer([
+        ("num", Pipeline([("imputer", SimpleImputer(strategy="median")), ("scaler", StandardScaler())]), num_cols),
+        ("cat", Pipeline([("imputer", SimpleImputer(strategy="constant", fill_value="Unknown")), ("encoder", OneHotEncoder(handle_unknown="ignore"))]), cat_cols)
+    ])
+    
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
+    
+    lr = Pipeline([("prep", preprocessor), ("clf", LogisticRegression(random_state=42))]).fit(X_train, y_train)
+    rf = Pipeline([("prep", preprocessor), ("clf", RandomForestClassifier(random_state=42))]).fit(X_train, y_train)
+    
+    y_lr = lr.predict(X_test)
+    y_rf = rf.predict(X_test)
+    
+    metrics = pd.DataFrame({
+        "Logistic Regression": [accuracy_score(y_test, y_lr), precision_score(y_test, y_lr), recall_score(y_test, y_lr), f1_score(y_test, y_lr)],
+        "Random Forest": [accuracy_score(y_test, y_rf), precision_score(y_test, y_rf), recall_score(y_test, y_rf), f1_score(y_test, y_rf)]
+    }, index=["Accuracy", "Precision", "Recall", "F1-Score"]).T
+    
+    return lr, rf, metrics, confusion_matrix(y_test, y_lr), confusion_matrix(y_test, y_rf)
+
+# Pre-train models once globally
+lr_model, rf_model, metrics_df, cm_lr, cm_rf = train_models(df)
+
 PLOTLY_THEME = "plotly_dark"
 COLOR_GOOD = "#10b981"
 COLOR_BAD = "#ef4444"
@@ -147,8 +148,7 @@ st.markdown('<p class="sub-title">Advanced Data Analytics, Interactive Visualiza
 # ---------------------------------------------------------
 # SIDEBAR NAVIGATION & FILTERS
 # ---------------------------------------------------------
-st.sidebar.image("https://img.icons8.com/isometric-reflection/100/bank-cards.png", width=70)
-st.sidebar.title("App Navigation")
+st.sidebar.title("💳 Navigation")
 selected_tab = st.sidebar.radio("Go to:", [
     "📊 Executive Summary", 
     "📈 Exploratory Analytics", 
@@ -258,36 +258,6 @@ elif selected_tab == "📈 Exploratory Analytics":
 elif selected_tab == "🤖 ML Models & Evaluation":
     st.markdown('### 🤖 Model Training & Benchmarking Engine')
     
-    @st.cache_resource
-    def train_models(data):
-        X = data.drop(columns=["Risk"])
-        y = data["Risk"].map({"good": 1, "bad": 0})
-        
-        cat_cols = ["Sex", "Housing", "Saving accounts", "Checking account", "Purpose"]
-        num_cols = ["Age", "Job", "Credit amount", "Duration"]
-        
-        preprocessor = ColumnTransformer([
-            ("num", Pipeline([("imputer", SimpleImputer(strategy="median")), ("scaler", StandardScaler())]), num_cols),
-            ("cat", Pipeline([("imputer", SimpleImputer(strategy="constant", fill_value="Unknown")), ("encoder", OneHotEncoder(handle_unknown="ignore"))]), cat_cols)
-        ])
-        
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
-        
-        lr = Pipeline([("prep", preprocessor), ("clf", LogisticRegression(random_state=42))]).fit(X_train, y_train)
-        rf = Pipeline([("prep", preprocessor), ("clf", RandomForestClassifier(random_state=42))]).fit(X_train, y_train)
-        
-        y_lr = lr.predict(X_test)
-        y_rf = rf.predict(X_test)
-        
-        metrics = pd.DataFrame({
-            "Logistic Regression": [accuracy_score(y_test, y_lr), precision_score(y_test, y_lr), recall_score(y_test, y_lr), f1_score(y_test, y_lr)],
-            "Random Forest": [accuracy_score(y_test, y_rf), precision_score(y_test, y_rf), recall_score(y_test, y_rf), f1_score(y_test, y_rf)]
-        }, index=["Accuracy", "Precision", "Recall", "F1-Score"]).T
-        
-        return lr, rf, metrics, confusion_matrix(y_test, y_lr), confusion_matrix(y_test, y_rf)
-
-    lr_model, rf_model, metrics_df, cm_lr, cm_rf = train_models(df)
-    
     st.markdown('<div class="glass-card">', unsafe_allow_html=True)
     st.subheader("Model Performance Comparison")
     st.dataframe(metrics_df.style.highlight_max(axis=0, color="#10b981"), use_container_width=True)
@@ -316,8 +286,6 @@ elif selected_tab == "🤖 ML Models & Evaluation":
 # ---------------------------------------------------------
 elif selected_tab == "⚡ Live Applicant Risk Scoring":
     st.markdown('### ⚡ Interactive Risk Scoring Form')
-    
-    lr_model, rf_model, _, _, _ = train_models(df)
     
     with st.form("risk_form"):
         st.markdown('<div class="glass-card">', unsafe_allow_html=True)

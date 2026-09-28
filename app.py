@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.express as px
-import plotly.figure_factory as ff
 
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
@@ -105,11 +104,28 @@ with tab3:
     
     m_col1, m_col2 = st.columns(2)
     with m_col1:
-        st.subheader("Logistic Regression CM")
-        st.plotly_chart(ff.create_annotated_heatmap(cm_lr, x=["Pred Bad", "Pred Good"], y=["Act Bad", "Act Good"], colorscale="Blues"), use_container_width=True)
+        st.subheader("Logistic Regression Confusion Matrix")
+        fig_cm_lr = px.imshow(
+            cm_lr, 
+            labels=dict(x="Predicted Label", y="Actual Label", color="Count"),
+            x=["Bad Credit", "Good Credit"], 
+            y=["Bad Credit", "Good Credit"],
+            text_auto=True,
+            color_continuous_scale="Blues"
+        )
+        st.plotly_chart(fig_cm_lr, use_container_width=True)
+        
     with m_col2:
-        st.subheader("Random Forest CM")
-        st.plotly_chart(ff.create_annotated_heatmap(cm_rf, x=["Pred Bad", "Pred Good"], y=["Act Bad", "Act Good"], colorscale="Greens"), use_container_width=True)
+        st.subheader("Random Forest Confusion Matrix")
+        fig_cm_rf = px.imshow(
+            cm_rf, 
+            labels=dict(x="Predicted Label", y="Actual Label", color="Count"),
+            x=["Bad Credit", "Good Credit"], 
+            y=["Bad Credit", "Good Credit"],
+            text_auto=True,
+            color_continuous_scale="Greens"
+        )
+        st.plotly_chart(fig_cm_rf, use_container_width=True)
 
 # TAB 4: PREDICTOR
 with tab4:
